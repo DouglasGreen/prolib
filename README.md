@@ -3,8 +3,18 @@ Prolog library modules
 
 ## Lexer
 
-The lexer ignores white space and produces labeled tokens. It has different predicates for different token types. Here
-are a couple of examples.
+The lexer (`lexer.pl`) produces labeled tokens. It has different predicates for different token types. Here are some
+examples.
+
+### `lexer:all_tokens/3`
+
+This predicate is intended for parsing line-oriented languages where space, tab, and new line matter. The other
+predicates ignore white space.
+
+```
+?- phrase(lexer:all_tokens(Ts), `    \t\tprint.\n`).
+Ts = [space(4), tab(2), alpha(print), mark('.'), nl(1)] .
+```
 
 ### `lexer:alnum_tokens/3`
 

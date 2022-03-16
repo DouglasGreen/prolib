@@ -1,11 +1,48 @@
 /** <module> Lexer to produce labeled tokens */
 
 :- module(lexer, [
+        all_tokens/3,
         alnum_tokens/3,
         alpha_tokens/3,
         word_tokens/3
     ]
 ).
+
+%! all_tokens(Tokens:list)
+% Match a list of all tokens including whitespace.
+all_tokens([Token|Tokens]) -->
+    all_token(Token),
+    all_tokens(Tokens).
+all_tokens([]) -->  [].
+
+%! all_token(Token:comp)
+% Match a single token including whitespace.
+all_token(space(N)) -->
+    ` `,
+    all_token(space(N1)),
+    {N is N1 + 1}.
+all_token(space(1)) -->
+    ` `,
+    !.
+all_token(tab(N)) -->
+    `\t`,
+    all_token(tab(N1)),
+    {N is N1 + 1}.
+all_token(tab(1)) -->
+    `\t`,
+    !.
+all_token(nl(N)) -->
+    `\n`,
+    all_token(nl(N1)),
+    {N is N1 + 1}.
+all_token(nl(1)) -->
+    `\n`,
+    !.
+all_token(Token) -->
+    `\r`,
+    all_token(Token).
+all_token(Token) -->
+    alpha_token(Token).
 
 %! alnum_tokens(Tokens:list)
 % Match a list of alphanumeric tokens.
