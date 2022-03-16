@@ -2,6 +2,7 @@
 
 :- module(lexer, [
         alnum_tokens/3,
+        alpha_tokens/3,
         word_tokens/3
     ]
 ).
@@ -25,6 +26,34 @@ alnum_token(alnum(W)) -->
     !,
     {atom_chars(W, [C|Cs])}.
 alnum_token(mark(M)) -->
+    char(P, punct),
+    !,
+    {atom_chars(M, [P])}.
+
+%! alpha_tokens(Tokens:list)
+% Match a list of alpha or numeric tokens.
+alpha_tokens([Token|Tokens]) -->
+    alpha_token(Token),
+    alpha_tokens(Tokens).
+alpha_tokens(Tokens) -->
+    [S],
+    {char_type(S, space)},
+    alpha_tokens(Tokens).
+alpha_tokens([]) -->  [].
+
+%! alpha_token(Token:comp)
+% Match a single alpha or numeric token.
+alpha_token(alpha(W)) -->
+    char(C, alpha),
+    chars(Cs, alpha),
+    !,
+    {atom_chars(W, [C|Cs])}.
+alpha_token(number(N)) -->
+    char(D, digit),
+    chars(Ds, digit),
+    !,
+    {atom_chars(N, [D|Ds])}.
+alpha_token(mark(M)) -->
     char(P, punct),
     !,
     {atom_chars(M, [P])}.

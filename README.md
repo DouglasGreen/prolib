@@ -14,8 +14,17 @@ This predicate is intended for parsing HTML or XML where letters are mixed with 
 ?- phrase(lexer:alnum_tokens(Ts), `<div id="6c7018bdffebedadd3cba91109b5531d">`).
 Ts = [mark(<), alnum(div), alnum(id), mark(=), mark('"'), alnum('6c7018bdffebedadd3cba91109b5531d'),
     mark('"'), mark(>)] .
+```
+
+### `lexer:alpha_tokens/3`
+
+This predicate is like `alnum_tokens/3` but it separates the alpha from the numeric.
 
 ```
+?- phrase(lexer:alpha_tokens(Ts), `Easy as abc123!`).
+Ts = [alpha('Easy'), alpha(as), alpha(abc), number('123'), mark(!)] .
+```
+
 ### `lexer:word_tokens/3`
 
 This predicate is intended for parsing English text where the distinction between upper and lowercase words is important.
