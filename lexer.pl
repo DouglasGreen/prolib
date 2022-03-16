@@ -1,8 +1,8 @@
 /** <module> Lexer to produce labeled tokens */
 
 :- module(lexer, [
-    alnum_tokens/3,
-    word_tokens/3
+        alnum_tokens/3,
+        word_tokens/3
     ]
 ).
 
