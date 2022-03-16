@@ -1,9 +1,36 @@
 /** <module> Lexer to produce labeled tokens */
 
-:- module(lexer, [word_tokens/3]).
+:- module(lexer, [
+    alnum_tokens/3,
+    word_tokens/3
+    ]
+).
+
+%! alnum_tokens(Tokens:list)
+% Match a list of alphanumeric tokens.
+alnum_tokens([Token|Tokens]) -->
+    alnum_token(Token),
+    alnum_tokens(Tokens).
+alnum_tokens(Tokens) -->
+    [S],
+    {char_type(S, space)},
+    alnum_tokens(Tokens).
+alnum_tokens([]) -->  [].
+
+%! alnum_token(Token:comp)
+% Match a single alphanumeric token.
+alnum_token(alnum(W)) -->
+    char(C, alnum),
+    chars(Cs, alnum),
+    !,
+    {atom_chars(W, [C|Cs])}.
+alnum_token(mark(M)) -->
+    char(P, punct),
+    !,
+    {atom_chars(M, [P])}.
 
 %! word_tokens(Tokens:list)
-% Match a list of word tokens.
+% Match a list of word tokens, distinguishing upper and lowercase words.
 word_tokens([Token|Tokens]) -->
     word_token(Token),
     word_tokens(Tokens).
