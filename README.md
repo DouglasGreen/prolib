@@ -34,13 +34,3 @@ This predicate is like `alnum_tokens/3` but it separates the alpha from the nume
 ?- phrase(lexer:alpha_tokens(Ts), `Easy as abc123!`).
 Ts = [alpha('Easy'), alpha(as), alpha(abc), number('123'), mark(!)] .
 ```
-
-### `lexer:word_tokens/3`
-
-This predicate is intended for parsing English text where the distinction between upper and lowercase words is important.
-
-```
-?- phrase(lexer:word_tokens(Ts), `This is the #1 test.`).
-Ts = [word('This', upper), word(is, lower), word(the, lower), mark(#), number('1'),
-    word(test, lower), mark('.')] .
-```
