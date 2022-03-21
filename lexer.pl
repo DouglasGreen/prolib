@@ -14,7 +14,7 @@ all_tokens([Token|Tokens]) -->
     all_tokens(Tokens).
 all_tokens([]) -->  [].
 
-%! all_token(Token:comp)
+%! all_token(Token:compound)
 % Match a single token including whitespace.
 all_token(space(N)) -->
     ` `,
@@ -54,7 +54,7 @@ alnum_tokens(Tokens) -->
     alnum_tokens(Tokens).
 alnum_tokens([]) -->  [].
 
-%! alnum_token(Token:comp)
+%! alnum_token(Token:compound)
 % Match a single alphanumeric token.
 alnum_token(alnum(W)) -->
     char(C, alnum),
@@ -77,7 +77,7 @@ alpha_tokens(Tokens) -->
     alpha_tokens(Tokens).
 alpha_tokens([]) -->  [].
 
-%! alpha_token(Token:comp)
+%! alpha_token(Token:compound)
 % Match a single alpha or numeric token.
 alpha_token(alpha(W)) -->
     char(C, alpha),
@@ -100,7 +100,7 @@ char(C, Type) -->
     [C],
     {char_type(C, Type)}.
 
-%! chars(Cs:list<char>)
+%! chars(Cs:chars)
 % Match a list of characters.
 chars([C|Cs], Type) -->
     char(C, Type),
