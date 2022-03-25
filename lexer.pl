@@ -14,6 +14,28 @@ all_tokens([Token|Tokens]) -->
     all_tokens(Tokens).
 all_tokens([]) -->  [].
 
+%! alnum_tokens(Tokens:list)
+% Match a list of alphanumeric tokens.
+alnum_tokens([Token|Tokens]) -->
+    alnum_token(Token),
+    alnum_tokens(Tokens).
+alnum_tokens(Tokens) -->
+    [S],
+    {char_type(S, space)},
+    alnum_tokens(Tokens).
+alnum_tokens([]) -->  [].
+
+%! alpha_tokens(Tokens:list)
+% Match a list of alpha or numeric tokens.
+alpha_tokens([Token|Tokens]) -->
+    alpha_token(Token),
+    alpha_tokens(Tokens).
+alpha_tokens(Tokens) -->
+    [S],
+    {char_type(S, space)},
+    alpha_tokens(Tokens).
+alpha_tokens([]) -->  [].
+
 %! all_token(Token:compound)
 % Match a single token including whitespace.
 all_token(space(N)) -->
@@ -43,17 +65,6 @@ all_token(Token) -->
 all_token(Token) -->
     alpha_token(Token).
 
-%! alnum_tokens(Tokens:list)
-% Match a list of alphanumeric tokens.
-alnum_tokens([Token|Tokens]) -->
-    alnum_token(Token),
-    alnum_tokens(Tokens).
-alnum_tokens(Tokens) -->
-    [S],
-    {char_type(S, space)},
-    alnum_tokens(Tokens).
-alnum_tokens([]) -->  [].
-
 %! alnum_token(Token:compound)
 % Match a single alphanumeric token.
 alnum_token(alnum(W)) -->
@@ -65,17 +76,6 @@ alnum_token(mark(M)) -->
     char(P, punct),
     !,
     {atom_chars(M, [P])}.
-
-%! alpha_tokens(Tokens:list)
-% Match a list of alpha or numeric tokens.
-alpha_tokens([Token|Tokens]) -->
-    alpha_token(Token),
-    alpha_tokens(Tokens).
-alpha_tokens(Tokens) -->
-    [S],
-    {char_type(S, space)},
-    alpha_tokens(Tokens).
-alpha_tokens([]) -->  [].
 
 %! alpha_token(Token:compound)
 % Match a single alpha or numeric token.
@@ -94,15 +94,15 @@ alpha_token(mark(M)) -->
     !,
     {atom_chars(M, [P])}.
 
-%! char(C:char)
-% Match a single character.
-char(C, Type) -->
-    [C],
-    {char_type(C, Type)}.
-
 %! chars(Cs:chars)
 % Match a list of characters.
 chars([C|Cs], Type) -->
     char(C, Type),
     chars(Cs, Type).
 chars([], _) --> [].
+
+%! char(C:char)
+% Match a single character.
+char(C, Type) -->
+    [C],
+    {char_type(C, Type)}.
