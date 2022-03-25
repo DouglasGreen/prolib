@@ -1,4 +1,8 @@
-/** <module> Lexer to produce labeled tokens */
+%%
+% <module> Lexer to produce labeled tokens
+%
+% @author Douglas S. Green
+% @license GPL
 
 :- module(lexer, [
         all_tokens/3,
