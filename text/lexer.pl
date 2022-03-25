@@ -98,15 +98,15 @@ alpha_token(mark(M)) -->
     !,
     {atom_chars(M, [P])}.
 
-%! chars(Cs:chars)
-% Match a list of characters.
+%! chars(Cs:codes)
+% Match a list of character codes.
 chars([C|Cs], Type) -->
     char(C, Type),
     chars(Cs, Type).
 chars([], _) --> [].
 
-%! char(C:char)
-% Match a single character.
+%! char(C:code)
+% Match a single character code.
 char(C, Type) -->
     [C],
     {char_type(C, Type)}.
