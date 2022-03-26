@@ -1,45 +1,113 @@
 %%
 % <module> Prolog parser
 %
+% Graphical tokens haven't been implemented yet.
+%
 % @author Douglas S. Green
 % @license GPL
 
-
 :- module(prolog_parser, [
-        atom_names/3,
-        clauses/3
+        parse_file/3
     ]
 ).
 
 :- use_module(prolog_lexer).
+:- use_module(prolog_oplist).
 
-clauses([C|Cs]) -->
-    clause(C),
-    clauses(Cs).
+parse_file(file(Sections)) -->
+    parse_sections(Sections).
 
-clause(clause(H, B)) -->
-    head(H),
-    body(B).
+parse_sections([Section|Sections]) -->
+    parse_section(Section),
+    parse_sections(Sections).
+parse_sections([]) -->
+    [].
 
-head(term(H)) -->
-    term(H).
+parse_section(comments([Comment|Comments])) -->
+    parse_comment(Comment),
+    parse_comments(Comments).
+parse_section(clauses([Clause|Clauses])) -->
+    parse_clause(Clause),
+    parse_clauses(Clauses).
+
+parse_comment(comment(line(Line))) -->
+    [line_comment(Line)].
+parse_comment(comment(block(Block))) -->
+    [block_comment(Block)].
+
+parse_clauses([Clause|Clauses]) -->
+    parse_clause(Clause),
+    parse_clauses(Clauses).
+parse_clauses([]) -->
+    [].
+
+parse_comments([Comment|Comments]) -->
+    parse_comment(Comment),
+    parse_comments(Comments).
+parse_comments([]) -->
+    [].
+
+parse_clause(fact(Fact)) -->
+    parse_head(Fact),
+    [mark('.')].
+
+parse_head(head(Head)) -->
+    parse_atom(Head).
+    /*
+parse_head(head(Head)) :-
+    parse_compound(Head).*/
+
+parse_atom(atom(lower(Atom))) -->
+    [lower(Atom)].
+parse_atom(atom(single_quoted(Atom))) -->
+    [single_quoted(Atom)].
+
+/*
+clause(clause(Head, Block)) -->
+    head(Head),
+    body(Block).
+
+head(term(Head)) -->
+    term(Head).
 head([]) -->
     [].
 
-body(body(Gs)) -->
-    `:-`,
-    goals(Gs).
+body(body(Goals)) -->
+    [operator(':-', _)],
+    goals(Goals).
 
-term(terms(Ts)) -->
-    `(`,
-    terms(Ts),
-    `)`. 
+goals([]) -->
+    [].
 
-atom_names([A|As]) -->
-    atom_name(A),
-    atom_names(As).
-atom_names([]) -->  [].
-atom_name(atom_name(A)) -->
-    [single_quoted_string(A)];
-    [lower(A)];
-    [A].
+term(term(Term)) -->
+    variable(Term).
+term(term(Terms)) -->
+    termlist(Terms).
+
+termlist([paren, Term|Terms]) -->
+    [mark('(')],
+    term(Term),
+    terms(Terms),
+    [mark(')')]. 
+termlist([bracket, Term|Terms]) -->
+    [mark('[')],
+    term(Term),
+    terms(Terms),
+    [mark(']')]. 
+termlist([brace, Term|Terms]) -->
+    [mark('{')],
+    term(Term),
+    terms(Terms),
+    [mark('}')]. 
+
+terms([Term|Terms]) -->
+    [mark(',')],
+    term(Term),
+    terms(Terms).
+terms([]) -->
+    [].
+
+variable(variable(Var)) -->
+    [upper(Var)].
+
+*/

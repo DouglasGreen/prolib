@@ -4,7 +4,7 @@
 % @author Douglas S. Green
 % @license GPL
 
-:- module(prolog_operator, [
+:- module(prolog_oplist, [
         operator/3
     ]
 ).

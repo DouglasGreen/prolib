@@ -1,6 +1,8 @@
 %%
 % <module> Prolog lexer
 %
+% Every token is given a name. See token//1.
+%
 % See:
 % https://www.swi-prolog.org/pldoc/man?section=syntax
 %
@@ -12,209 +14,270 @@
     ]
 ).
 
-:- use_module(prolog_operator).
-
 %! tokens(Tokens:list)
 % Match a list of all tokens including whitespace.
 tokens([Token|Tokens]) -->
     token(Token),
+    {writeln(Token)},
     tokens(Tokens).
 tokens(Tokens) -->
-    [S],
-    {char_type(S, space)},
+    [Space],
+    {char_type(Space, space)},
     tokens(Tokens).
-tokens([]) -->  [].
+tokens([]) -->
+     [].
 
-%! chars(Cs:codes, Type:atom|compound)
-% Match a list of character codes.
-chars([C|Cs], Type) -->
-    char(C, Type),
-    chars(Cs, Type).
-chars([], _) --> [].
-
-%! line_chars(Cs:codes)
-% Match a list of character codes up to a new line.
-line_chars([C|Cs]) -->
-	[C],
-    {\+ char_type(C, end_of_line)},
-	line_chars(Cs).
-line_chars([]) --> [].
-
-%! multiline_chars(Cs:codes)
+%! block_chars(Chars:codes)
 % Match a list of character codes up to a the end of a multi-line comment.
-multiline_chars([C|Cs]) -->
-    [C],
-    {\+ char_code('*', C)},
-    multiline_chars(Cs).
-multiline_chars([C1,C2|Cs]), [C2] -->
-    [C1],
-    {char_code('*', C1)},
-    [C2],
-    {\+ char_code('/', C2)},
-    multiline_chars(Cs).
-multiline_chars([]) -->
+block_chars([Char|Chars]) -->
+    [Char],
+    {\+ char_code('*', Char)},
+    block_chars(Chars).
+block_chars([Char1,Char2|Chars]), [Char2] -->
+    [Char1],
+    {char_code('*', Char1)},
+    [Char2],
+    {\+ char_code('/', Char2)},
+    block_chars(Chars).
+block_chars([]) -->
     `*`,
     `/`.
 
-%! octal_digit(D:code)
-% Match an octal digit character code.
-octal_digit(D) -->
-    [D],
+%! chars(Chars:codes, Type:atom|compound)
+% Match a list of character codes.
+chars([Char|Chars], Type) -->
+    char(Char, Type),
+    chars(Chars, Type).
+chars([], _) -->
+    [].
+
+%! line_chars(Chars:codes)
+% Match a list of character codes up to a new line.
+line_chars([Char|Chars]) -->
+	[Char],
+    {\+ char_type(Char, end_of_line)},
+	line_chars(Chars).
+line_chars([]) -->
+    [].
+
+%! base_digit(Digit:code, Base:int)
+% Match an digit character code in a base from 2 to 10.
+base_digit(Digit, Base) -->
+    [Digit],
     {
-        char_type(D, digit(W)),
-        W < 8
+        char_type(Digit, digit(Weight)),
+        Weight < Base 
     }.
 
-%! octal_digits(Ds:codes)
-% Match a list of one or more octal digit codes.
-octal_digits([D|Ds]) -->
-    octal_digit(D),
-    octal_digits(Ds).
-octal_digits([D]) -->
-    octal_digit(D).
+%! base_digits(Digits:codes)
+% Match a list of one or more digit codes in a base from 2 to 10.
+base_digits([Digit|Digits], Base) -->
+    base_digit(Digit, Base),
+    base_digits(Digits, Base).
+base_digits([Digit], Base) -->
+    base_digit(Digit, Base).
 
-%! quoted_chars(Quote:atom, Cs:codes)
+%! quoted_chars(Quote:atom, Chars:codes)
 % Match a list of character codes up to a the end of a quoted string.
-quoted_chars(Quote, [C|Cs]) -->
-    [C],
+quoted_chars(Quote, [Char|Chars]) -->
+    [Char],
     {
-        \+ char_code('\\', C),
-        \+ char_code(Quote, C)
+        \+ char_code('\\', Char),
+        \+ char_code(Quote, Char)
     },
-    quoted_chars(Quote, Cs).
-quoted_chars(Quote, [C1, C2|Cs]) -->
-    [C1],
-    {char_code('\\', C1)},
-    [C2],
-    {char_code('x', C2)},
+    quoted_chars(Quote, Chars).
+quoted_chars(Quote, [Char1, Char2|Chars]) -->
+    [Char1],
+    {char_code('\\', Char1)},
+    [Char2],
+    {char_code('x', Char2)},
     hex_chars(HexChars),
-    [C3],
-    {char_code('\\', C3)},
+    [Char3],
+    {char_code('\\', Char3)},
     quoted_chars(Quote, Rest),
-    {append(HexChars, [C3|Rest], Cs)}.
-quoted_chars(Quote, [C|Cs]) -->
-    [C],
-    {char_code('\\', C)},
-    octal_digits(Ds),
-    {writeln(Ds)},
+    {append(HexChars, [Char3|Rest], Chars)}.
+quoted_chars(Quote, [Char|Chars]) -->
+    [Char],
+    {char_code('\\', Char)},
+    base_digits(Digits, 8),
+    {writeln(Digits)},
     quoted_chars(Quote, Rest),
-    {append(Ds, Rest, Cs)}.
-quoted_chars(Quote, [C1, C2, C3, C4, C5, C6|Cs]) -->
-    [C1],
-    {char_code('\\', C1)},
-    [C2],
-    {char_code('u', C2)},
-    hex_char(C3),
-    hex_char(C4),
-    hex_char(C5),
-    hex_char(C6),
-    quoted_chars(Quote, Cs).
-quoted_chars(Quote, [C1, C2, C3, C4, C5, C6, C7, C8, C9, C10|Cs]) -->
-    [C1],
-    {char_code('\\', C1)},
-    [C2],
-    {char_code('U', C2)},
-    hex_char(C3),
-    hex_char(C4),
-    hex_char(C5),
-    hex_char(C6),
-    hex_char(C7),
-    hex_char(C8),
-    hex_char(C9),
-    hex_char(C10),
-    quoted_chars(Quote, Cs).
-quoted_chars(Quote, [C1, C2|Cs]) -->
-    [C1],
-    {char_code('\\', C1)},
-    [C2],
-    quoted_chars(Quote, Cs).
-quoted_chars(Quote, [C, C|Cs]) -->
-    [C],
-    {char_code(Quote, C)},
-    [C],
-    quoted_chars(Quote, Cs).
+    {append(Digits, Rest, Chars)}.
+quoted_chars(Quote, [Char1, Char2, Char3, Char4, Char5, Char6|Chars]) -->
+    [Char1],
+    {char_code('\\', Char1)},
+    [Char2],
+    {char_code('u', Char2)},
+    hex_char(Char3),
+    hex_char(Char4),
+    hex_char(Char5),
+    hex_char(Char6),
+    quoted_chars(Quote, Chars).
+quoted_chars(Quote, [Char1, Char2, Char3, Char4, Char5, Char6, Char7, Char8, Char9, Char10|Chars]) -->
+    [Char1],
+    {char_code('\\', Char1)},
+    [Char2],
+    {char_code('U', Char2)},
+    hex_char(Char3),
+    hex_char(Char4),
+    hex_char(Char5),
+    hex_char(Char6),
+    hex_char(Char7),
+    hex_char(Char8),
+    hex_char(Char9),
+    hex_char(Char10),
+    quoted_chars(Quote, Chars).
+quoted_chars(Quote, [Char1, Char2|Chars]) -->
+    [Char1],
+    {char_code('\\', Char1)},
+    [Char2],
+    quoted_chars(Quote, Chars).
+quoted_chars(Quote, [Char, Char|Chars]) -->
+    [Char],
+    {char_code(Quote, Char)},
+    [Char],
+    quoted_chars(Quote, Chars).
 quoted_chars(Quote, []) -->
-    [C],
-    {char_code(Quote, C)}.
+    [Char],
+    {char_code(Quote, Char)}.
 
 %! token(Token:compound)
 % Match a single token.
 token(line_comment(Comment)) -->
     `%`,
-	line_chars(Cs),
+	line_chars(Chars),
 	`\n`,
     !,
-    {atom_chars(Comment, Cs)}.
-token(multiline_comment(Comment)) -->
+    {atom_chars(Comment, Chars)}.
+token(block_comment(Comment)) -->
     `/`,
     `*`,
-	multiline_chars(Cs),
+	block_chars(Chars),
     !,
-    {atom_chars(Comment, Cs)}.
-token(back_quoted_string(String)) -->
-    [C],
-    {char_code('`', C)},
-	quoted_chars('`', Cs),
+    {atom_chars(Comment, Chars)}.
+token(back_quoted(String)) -->
+    [Char],
+    {char_code('`', Char)},
+	quoted_chars('`', Chars),
     !,
-    {atom_chars(String, Cs)}.
-token(double_quoted_string(String)) -->
-    [C],
-    {char_code('"', C)},
-	quoted_chars('"', Cs),
+    {atom_chars(String, Chars)}.
+token(double_quoted(String)) -->
+    [Char],
+    {char_code('"', Char)},
+	quoted_chars('"', Chars),
     !,
-    {atom_chars(String, Cs)}.
-token(single_quoted_string(String)) -->
-    [C],
-    {char_code('\'', C)},
-	quoted_chars('\'', Cs),
+    {atom_chars(String, Chars)}.
+token(single_quoted(String)) -->
+    [Char],
+    {char_code('\'', Char)},
+	quoted_chars('\'', Chars),
     !,
-    {atom_chars(String, Cs)}.
+    {atom_chars(String, Chars)}.
+token(binary_value(Binary)) -->
+    `0b`,
+    base_digits(Chars, 2),
+    !,
+    {
+        append(`0b`, Chars, BinaryChars),
+        atom_chars(Binary, BinaryChars)
+    }.
+token(octal_value(Octal)) -->
+    `0o`,
+    base_digits(Chars, 8),
+    !,
+    {
+        append(`0o`, Chars, OctalChars),
+        atom_chars(Octal, OctalChars)
+    }.
 token(hex_value(Hex)) -->
     `0x`,
-    hex_chars(Cs),
+    hex_chars(Chars),
     !,
-    {atom_chars(Hex, Cs)}.
-token(operator(O, Associativity)) -->
-    chars(Ps, punct),
     {
-        atom_chars(O, Ps),
-        operator(_, Associativity, O)
-    },
-    !.
-token(mark(M)) -->
-    char(P, punct),
-    !,
-    {atom_chars(M, [P])}.
-token(lower(W)) -->
-    char(C, lower),
-    chars(Cs, csym),
-    !,
-    {atom_chars(W, [C|Cs])}.
-token(word(W)) -->
-    char(C, csymf),
-    chars(Cs, csym),
-    !,
-    {atom_chars(W, [C|Cs])}.
-
-%! char(C:code)
-% Match a single character code.
-char(C, Type) -->
-    [C],
-    {char_type(C, Type)}.
-
-%! hex_char(C:code)
-% Match and lowercase a hexadecimal character code.
-hex_char(C) -->
-    [Upper],
+        append(`0x`, Chars, HexChars),
+        atom_chars(Hex, HexChars)
+    }.
+token(float_value(PosFloat)) -->
+    float_digits(Digits),
+    {atom_chars(PosFloat, Digits)}.
+token(float_value(NegFloat)) -->
+    `-`,
+    float_digits(Digits),
     {
-        char_type(Upper, xdigit(_)),
-        to_lower(Upper, C)
+        char_code('-', Sign),
+        atom_chars(NegFloat, [Sign|Digits])
+    }.
+token(int_value(PosInt)) -->
+    base_digits(Digits, 10),
+    {atom_chars(PosInt, Digits)}.
+token(int_value(NegInt)) -->
+    `-`,
+    base_digits(Digits, 10),
+    {
+        char_code('-', Sign),
+        atom_chars(NegInt, [Sign|Digits])
+    }.
+token(mark(Mark)) -->
+    char(Punct, punct),
+    !,
+    {atom_chars(Mark, [Punct])}.
+token(lower(Lower)) -->
+    char(Char, lower),
+    chars(Chars, csym),
+    !,
+    {atom_chars(Lower, [Char|Chars])}.
+token(upper(Upper)) -->
+    char(Char, csymf),
+    chars(Chars, csym),
+    !,
+    {atom_chars(Upper, [Char|Chars])}.
+
+%! float_digits(FloatDigits:codes)
+% Parse a floating point except the sign.
+float_digits(FloatDigits) -->
+    base_digits(WholeDigits, 10),
+    `.`,
+    base_digits(FracDigits, 10),
+    exponent(ExpDigits),
+    {
+        char_code('.', Point),
+        flatten([WholeDigits, Point, FracDigits, ExpDigits], FloatDigits)
     }.
 
-%! hex_chars(Cs:codes)
+%! exponent(ExpDigits:codes)
+% Return a floating-point exponent as a list of codes.
+exponent(ExpDigits) -->
+    [Char1],
+    {
+        char_code('e', Char1);
+        char_code('E', Char1)
+    },
+    [Char2],
+    {
+        char_code('+', Char2);
+        char_code('-', Char2)
+    },
+    base_digits(Exponent, 10),
+    {ExpDigits = [Char1, Char2|Exponent]}.
+exponent([]) -->
+    [].
+
+%! char(Char:code)
+% Match a single character code.
+char(Char, Type) -->
+    [Char],
+    {char_type(Char, Type)}.
+
+%! hex_char(Char:code)
+% Match a hexadecimal character code.
+hex_char(Char) -->
+    [Char],
+    {char_type(Char, xdigit(_))}.
+
+%! hex_chars(Chars:codes)
 % Match and lowercase a list of one or more hexadecimal character codes.
-hex_chars([C|Cs]) -->
-    hex_char(C),
-    hex_chars(Cs).
-hex_chars([C]) -->
-    hex_char(C).
+hex_chars([Char|Chars]) -->
+    hex_char(Char),
+    hex_chars(Chars).
+hex_chars([Char]) -->
+    hex_char(Char).
