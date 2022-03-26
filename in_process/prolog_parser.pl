@@ -1,9 +1,6 @@
 %%
 % <module> Prolog parser
 %
-% See:
-% https://www.swi-prolog.org/pldoc/man?section=syntax
-%
 % @author Douglas S. Green
 % @license GPL
 
