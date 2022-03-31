@@ -16,7 +16,7 @@
 
 :- use_module(library(dcg/basics)).
 
-%! tokens(Tokens:list)
+%! tokens(-Tokens:list) is semidet
 % Match a list of all tokens excluding whitespace.
 tokens([Token|Tokens]) -->
     token(Token),
@@ -28,7 +28,7 @@ tokens(Tokens) -->
 tokens([]) -->
      [].
 
-%! base_digit(Digit:code, Base:int)
+%! base_digit(-Digit:code, -Base:int) is semidet
 % Match an digit character code in a base from 2 to 10.
 base_digit(Digit, Base) -->
     [Digit],
@@ -37,33 +37,33 @@ base_digit(Digit, Base) -->
         Weight < Base
     }.
 
-%! chars(Chars:codes, Type:atom|compound)
+%! chars(-Codes:codes, -Type:atom|compound) is semidet
 % Match a list of character codes.
-chars([Char|Chars], Type) -->
-    char(Char, Type),
-    chars(Chars, Type).
+chars([Code|Codes], Type) -->
+    char(Code, Type),
+    chars(Codes, Type).
 chars([], _) -->
     [].
 
-%! exponent(ExpDigits:codes)
+%! exponent(-ExpDigits:codes) is semidet
 % Return a floating-point exponent as a list of codes.
 exponent(ExpDigits) -->
-    [Char1],
+    [Code1],
     {
-        char_code('e', Char1);
-        char_code('E', Char1)
+        char_code('e', Code1);
+        char_code('E', Code1)
     },
-    [Char2],
+    [Code2],
     {
-        char_code('+', Char2);
-        char_code('-', Char2)
+        char_code('+', Code2);
+        char_code('-', Code2)
     },
     base_digits(Exponent, 10),
-    {ExpDigits = [Char1, Char2|Exponent]}.
+    {ExpDigits = [Code1, Code2|Exponent]}.
 exponent([]) -->
     [].
 
-%! float_digits(FloatDigits:codes)
+%! float_digits(-FloatDigits:codes) is semidet
 % Parse a floating point except the sign.
 float_digits(FloatDigits) -->
     base_digits(WholeDigits, 10),
@@ -75,125 +75,125 @@ float_digits(FloatDigits) -->
         flatten([WholeDigits, Point, FracDigits, ExpDigits], FloatDigits)
     }.
 
-%! quoted_chars(Quote:atom, Chars:codes)
+%! quoted_chars(-Quote:atom, -Codes:codes) is semidet
 % Match a list of character codes up to a the end of a quoted string.
-quoted_chars(Quote, [Char|Chars]) -->
-    [Char],
+quoted_chars(Quote, [Code|Codes]) -->
+    [Code],
     {
-        \+ char_code('\\', Char),
-        \+ char_code(Quote, Char)
+        \+ char_code('\\', Code),
+        \+ char_code(Quote, Code)
     },
-    quoted_chars(Quote, Chars).
-quoted_chars(Quote, [Char1, Char2|Chars]) -->
-    [Char1],
-    {char_code('\\', Char1)},
-    [Char2],
-    {char_code('x', Char2)},
-    hex_chars(HexChars),
-    [Char3],
-    {char_code('\\', Char3)},
+    quoted_chars(Quote, Codes).
+quoted_chars(Quote, [Code1, Code2|Codes]) -->
+    [Code1],
+    {char_code('\\', Code1)},
+    [Code2],
+    {char_code('x', Code2)},
+    hex_chars(HexCodes),
+    [Code3],
+    {char_code('\\', Code3)},
     quoted_chars(Quote, Rest),
-    {append(HexChars, [Char3|Rest], Chars)}.
-quoted_chars(Quote, [Char|Chars]) -->
-    [Char],
-    {char_code('\\', Char)},
+    {append(HexCodes, [Code3|Rest], Codes)}.
+quoted_chars(Quote, [Code|Codes]) -->
+    [Code],
+    {char_code('\\', Code)},
     base_digits(Digits, 8),
     quoted_chars(Quote, Rest),
-    {append(Digits, Rest, Chars)}.
-quoted_chars(Quote, [Char1, Char2, Char3, Char4, Char5, Char6|Chars]) -->
-    [Char1],
-    {char_code('\\', Char1)},
-    [Char2],
-    {char_code('u', Char2)},
-    hex_char(Char3),
-    hex_char(Char4),
-    hex_char(Char5),
-    hex_char(Char6),
-    quoted_chars(Quote, Chars).
-quoted_chars(Quote, [Char1, Char2, Char3, Char4, Char5, Char6, Char7, Char8, Char9, Char10|Chars]) -->
-    [Char1],
-    {char_code('\\', Char1)},
-    [Char2],
-    {char_code('U', Char2)},
-    hex_char(Char3),
-    hex_char(Char4),
-    hex_char(Char5),
-    hex_char(Char6),
-    hex_char(Char7),
-    hex_char(Char8),
-    hex_char(Char9),
-    hex_char(Char10),
-    quoted_chars(Quote, Chars).
-quoted_chars(Quote, [Char1, Char2|Chars]) -->
-    [Char1],
-    {char_code('\\', Char1)},
-    [Char2],
-    quoted_chars(Quote, Chars).
-quoted_chars(Quote, [Char, Char|Chars]) -->
-    [Char],
-    {char_code(Quote, Char)},
-    [Char],
-    quoted_chars(Quote, Chars).
+    {append(Digits, Rest, Codes)}.
+quoted_chars(Quote, [Code1, Code2, Code3, Code4, Code5, Code6|Codes]) -->
+    [Code1],
+    {char_code('\\', Code1)},
+    [Code2],
+    {char_code('u', Code2)},
+    hex_char(Code3),
+    hex_char(Code4),
+    hex_char(Code5),
+    hex_char(Code6),
+    quoted_chars(Quote, Codes).
+quoted_chars(Quote, [Code1, Code2, Code3, Code4, Code5, Code6, Code7, Code8, Code9, Code10|Codes]) -->
+    [Code1],
+    {char_code('\\', Code1)},
+    [Code2],
+    {char_code('U', Code2)},
+    hex_char(Code3),
+    hex_char(Code4),
+    hex_char(Code5),
+    hex_char(Code6),
+    hex_char(Code7),
+    hex_char(Code8),
+    hex_char(Code9),
+    hex_char(Code10),
+    quoted_chars(Quote, Codes).
+quoted_chars(Quote, [Code1, Code2|Codes]) -->
+    [Code1],
+    {char_code('\\', Code1)},
+    [Code2],
+    quoted_chars(Quote, Codes).
+quoted_chars(Quote, [Code, Code|Codes]) -->
+    [Code],
+    {char_code(Quote, Code)},
+    [Code],
+    quoted_chars(Quote, Codes).
 quoted_chars(Quote, []) -->
-    [Char],
-    {char_code(Quote, Char)}.
+    [Code],
+    {char_code(Quote, Code)}.
 
-%! token(Token:compound)
+%! token(-Token:compound) is semidet
 % Match a single token.
 token(comment(line, Comment)) -->
     `%`,
-	string_without(`\n`, Chars),
+	string_without(`\n`, Codes),
     !,
-    {atom_chars(Comment, Chars)}.
+    {atom_chars(Comment, Codes)}.
 token(comment(block, Comment)) -->
     `/`,
     `*`,
-	string(Chars),
+	string(Codes),
     `*`,
     `/`,
     !,
-    {atom_chars(Comment, Chars)}.
+    {atom_chars(Comment, Codes)}.
 token(quoted(back, String)) -->
-    [Char],
-    {char_code('`', Char)},
-	quoted_chars('`', Chars),
+    [Code],
+    {char_code('`', Code)},
+	quoted_chars('`', Codes),
     !,
-    {atom_chars(String, Chars)}.
+    {atom_chars(String, Codes)}.
 token(quoted(double, String)) -->
-    [Char],
-    {char_code('"', Char)},
-	quoted_chars('"', Chars),
+    [Code],
+    {char_code('"', Code)},
+	quoted_chars('"', Codes),
     !,
-    {atom_chars(String, Chars)}.
+    {atom_chars(String, Codes)}.
 token(quoted(single, String)) -->
-    [Char],
-    {char_code('\'', Char)},
-	quoted_chars('\'', Chars),
+    [Code],
+    {char_code('\'', Code)},
+	quoted_chars('\'', Codes),
     !,
-    {atom_chars(String, Chars)}.
+    {atom_chars(String, Codes)}.
 token(value(binary, Binary)) -->
     `0b`,
-    base_digits(Chars, 2),
+    base_digits(Codes, 2),
     !,
     {
-        append(`0b`, Chars, BinaryChars),
-        atom_chars(Binary, BinaryChars)
+        append(`0b`, Codes, BinaryCodes),
+        atom_chars(Binary, BinaryCodes)
     }.
 token(value(octal, Octal)) -->
     `0o`,
-    base_digits(Chars, 8),
+    base_digits(Codes, 8),
     !,
     {
-        append(`0o`, Chars, OctalChars),
-        atom_chars(Octal, OctalChars)
+        append(`0o`, Codes, OctalCodes),
+        atom_chars(Octal, OctalCodes)
     }.
 token(value(hex, Hex)) -->
     `0x`,
-    hex_chars(Chars),
+    hex_chars(Codes),
     !,
     {
-        append(`0x`, Chars, HexChars),
-        atom_chars(Hex, HexChars)
+        append(`0x`, Codes, HexCodes),
+        atom_chars(Hex, HexCodes)
     }.
 token(value(float, PosFloat)) -->
     float_digits(Digits),
@@ -220,37 +220,37 @@ token(mark(Mark)) -->
     !,
     {atom_chars(Mark, [Punct])}.
 token(lower(Lower)) -->
-    char(Char, lower),
-    chars(Chars, csym),
+    char(Code, lower),
+    chars(Codes, csym),
     !,
-    {atom_chars(Lower, [Char|Chars])}.
+    {atom_chars(Lower, [Code|Codes])}.
 token(upper(Upper)) -->
-    char(Char, csymf),
-    chars(Chars, csym),
+    char(Code, csymf),
+    chars(Codes, csym),
     !,
-    {atom_chars(Upper, [Char|Chars])}.
+    {atom_chars(Upper, [Code|Codes])}.
 
-%! char(Char:code)
+%! char(-Code:code) is semidet
 % Match a single character code.
-char(Char, Type) -->
-    [Char],
-    {char_type(Char, Type)}.
+char(Code, Type) -->
+    [Code],
+    {char_type(Code, Type)}.
 
-%! hex_char(Char:code)
+%! hex_char(-Code:code) is semidet
 % Match a hexadecimal character code.
-hex_char(Char) -->
-    [Char],
-    {char_type(Char, xdigit(_))}.
+hex_char(Code) -->
+    [Code],
+    {char_type(Code, xdigit(_))}.
 
-%! hex_chars(Chars:codes)
+%! hex_chars(-Codes:codes) is semidet
 % Match and lowercase a list of one or more hexadecimal character codes.
-hex_chars([Char|Chars]) -->
-    hex_char(Char),
-    hex_chars(Chars).
-hex_chars([Char]) -->
-    hex_char(Char).
+hex_chars([Code|Codes]) -->
+    hex_char(Code),
+    hex_chars(Codes).
+hex_chars([Code]) -->
+    hex_char(Code).
 
-%! base_digits(Digits:codes)
+%! base_digits(-Digits:codes) is semidet
 % Match a list of one or more digit codes in a base from 2 to 10.
 base_digits([Digit|Digits], Base) -->
     base_digit(Digit, Base),

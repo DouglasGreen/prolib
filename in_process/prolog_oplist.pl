@@ -9,7 +9,7 @@
     ]
 ).
 
-%! operator(Predecence:int, Associativity:atom, Name:atom)
+%! operator(?Predecence:int, ?Associativity:atom, ?Name:atom) is nondet
 % List of operators
 operator(1200, 'xfx', '-->').
 operator(1200, 'xfx', ':-').

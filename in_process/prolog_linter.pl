@@ -13,7 +13,7 @@
 
 % todo: Check if predicates are already defined by the language
 
-%! check(Tokens:list)
+%! check(+Tokens:list) is det
 % Check the entire list of tokens.
 check([upper(Upper)|Tokens]) :-
     atom_length(Upper, Len),
