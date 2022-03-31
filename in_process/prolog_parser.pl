@@ -17,23 +17,10 @@
 parse_file(file(Sections)) -->
     parse_sections(Sections).
 
-parse_sections([Section|Sections]) -->
-    parse_section(Section),
-    parse_sections(Sections).
-parse_sections([]) -->
-    [].
-
-parse_section(comments([Comment|Comments])) -->
-    parse_comment(Comment),
-    parse_comments(Comments).
-parse_section(clauses([Clause|Clauses])) -->
-    parse_clause(Clause),
-    parse_clauses(Clauses).
-
-parse_comment(comment(line(Line))) -->
-    [comment(line, Line)].
-parse_comment(comment(block(Block))) -->
-    [comment(block, Block)].
+parse_atom(atom(lower(Atom))) -->
+    [lower(Atom)].
+parse_atom(atom(quoted(single, Atom))) -->
+    [quoted(single, Atom)].
 
 parse_clauses([Clause|Clauses]) -->
     parse_clause(Clause),
@@ -47,67 +34,30 @@ parse_comments([Comment|Comments]) -->
 parse_comments([]) -->
     [].
 
-parse_clause(fact(Fact)) -->
-    parse_head(Fact),
-    [mark('.')].
-
 parse_head(head(Head)) -->
     parse_atom(Head).
     /*
 parse_head(head(Head)) :-
     parse_compound(Head).*/
 
-parse_atom(atom(lower(Atom))) -->
-    [lower(Atom)].
-parse_atom(atom(quoted(single, Atom))) -->
-    [quoted(single, Atom)].
+parse_section(comments([Comment|Comments])) -->
+    parse_comment(Comment),
+    parse_comments(Comments).
+parse_section(clauses([Clause|Clauses])) -->
+    parse_clause(Clause),
+    parse_clauses(Clauses).
 
-/*
-clause(clause(Head, Block)) -->
-    head(Head),
-    body(Block).
-
-head(term(Head)) -->
-    term(Head).
-head([]) -->
+parse_sections([Section|Sections]) -->
+    parse_section(Section),
+    parse_sections(Sections).
+parse_sections([]) -->
     [].
 
-body(body(Goals)) -->
-    [operator(':-', _)],
-    goals(Goals).
+parse_clause(fact(Fact)) -->
+    parse_head(Fact),
+    [mark('.')].
 
-goals([]) -->
-    [].
-
-term(term(Term)) -->
-    variable(Term).
-term(term(Terms)) -->
-    termlist(Terms).
-
-termlist([paren, Term|Terms]) -->
-    [mark('(')],
-    term(Term),
-    terms(Terms),
-    [mark(')')].
-termlist([bracket, Term|Terms]) -->
-    [mark('[')],
-    term(Term),
-    terms(Terms),
-    [mark(']')].
-termlist([brace, Term|Terms]) -->
-    [mark('{')],
-    term(Term),
-    terms(Terms),
-    [mark('}')].
-
-terms([Term|Terms]) -->
-    [mark(',')],
-    term(Term),
-    terms(Terms).
-terms([]) -->
-    [].
-
-variable(variable(Var)) -->
-    [upper(Var)].
-
-*/
+parse_comment(comment(line(Line))) -->
+    [comment(line, Line)].
+parse_comment(comment(block(Block))) -->
+    [comment(block, Block)].

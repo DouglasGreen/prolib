@@ -28,14 +28,6 @@ tokens(Tokens) -->
 tokens([]) -->
      [].
 
-%! chars(Chars:codes, Type:atom|compound)
-% Match a list of character codes.
-chars([Char|Chars], Type) -->
-    char(Char, Type),
-    chars(Chars, Type).
-chars([], _) -->
-    [].
-
 %! base_digit(Digit:code, Base:int)
 % Match an digit character code in a base from 2 to 10.
 base_digit(Digit, Base) -->
@@ -45,13 +37,43 @@ base_digit(Digit, Base) -->
         Weight < Base
     }.
 
-%! base_digits(Digits:codes)
-% Match a list of one or more digit codes in a base from 2 to 10.
-base_digits([Digit|Digits], Base) -->
-    base_digit(Digit, Base),
-    base_digits(Digits, Base).
-base_digits([Digit], Base) -->
-    base_digit(Digit, Base).
+%! chars(Chars:codes, Type:atom|compound)
+% Match a list of character codes.
+chars([Char|Chars], Type) -->
+    char(Char, Type),
+    chars(Chars, Type).
+chars([], _) -->
+    [].
+
+%! exponent(ExpDigits:codes)
+% Return a floating-point exponent as a list of codes.
+exponent(ExpDigits) -->
+    [Char1],
+    {
+        char_code('e', Char1);
+        char_code('E', Char1)
+    },
+    [Char2],
+    {
+        char_code('+', Char2);
+        char_code('-', Char2)
+    },
+    base_digits(Exponent, 10),
+    {ExpDigits = [Char1, Char2|Exponent]}.
+exponent([]) -->
+    [].
+
+%! float_digits(FloatDigits:codes)
+% Parse a floating point except the sign.
+float_digits(FloatDigits) -->
+    base_digits(WholeDigits, 10),
+    `.`,
+    base_digits(FracDigits, 10),
+    exponent(ExpDigits),
+    {
+        char_code('.', Point),
+        flatten([WholeDigits, Point, FracDigits, ExpDigits], FloatDigits)
+    }.
 
 %! quoted_chars(Quote:atom, Chars:codes)
 % Match a list of character codes up to a the end of a quoted string.
@@ -208,36 +230,6 @@ token(upper(Upper)) -->
     !,
     {atom_chars(Upper, [Char|Chars])}.
 
-%! float_digits(FloatDigits:codes)
-% Parse a floating point except the sign.
-float_digits(FloatDigits) -->
-    base_digits(WholeDigits, 10),
-    `.`,
-    base_digits(FracDigits, 10),
-    exponent(ExpDigits),
-    {
-        char_code('.', Point),
-        flatten([WholeDigits, Point, FracDigits, ExpDigits], FloatDigits)
-    }.
-
-%! exponent(ExpDigits:codes)
-% Return a floating-point exponent as a list of codes.
-exponent(ExpDigits) -->
-    [Char1],
-    {
-        char_code('e', Char1);
-        char_code('E', Char1)
-    },
-    [Char2],
-    {
-        char_code('+', Char2);
-        char_code('-', Char2)
-    },
-    base_digits(Exponent, 10),
-    {ExpDigits = [Char1, Char2|Exponent]}.
-exponent([]) -->
-    [].
-
 %! char(Char:code)
 % Match a single character code.
 char(Char, Type) -->
@@ -257,3 +249,12 @@ hex_chars([Char|Chars]) -->
     hex_chars(Chars).
 hex_chars([Char]) -->
     hex_char(Char).
+
+%! base_digits(Digits:codes)
+% Match a list of one or more digit codes in a base from 2 to 10.
+base_digits([Digit|Digits], Base) -->
+    base_digit(Digit, Base),
+    base_digits(Digits, Base).
+base_digits([Digit], Base) -->
+    base_digit(Digit, Base).
+
