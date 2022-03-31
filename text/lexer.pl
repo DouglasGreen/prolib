@@ -11,6 +11,8 @@
     ]
 ).
 
+:- use_module(library(dcg/basics)).
+
 %! all_tokens(Tokens:list)
 % Match a list of all tokens including whitespace.
 all_tokens([Token|Tokens]) -->
@@ -24,8 +26,8 @@ alnum_tokens([Token|Tokens]) -->
     alnum_token(Token),
     alnum_tokens(Tokens).
 alnum_tokens(Tokens) -->
-    [S],
-    {char_type(S, space)},
+    blank,
+    blanks,
     alnum_tokens(Tokens).
 alnum_tokens([]) -->  [].
 
@@ -35,8 +37,8 @@ alpha_tokens([Token|Tokens]) -->
     alpha_token(Token),
     alpha_tokens(Tokens).
 alpha_tokens(Tokens) -->
-    [S],
-    {char_type(S, space)},
+    blank,
+    blanks,
     alpha_tokens(Tokens).
 alpha_tokens([]) -->  [].
 
