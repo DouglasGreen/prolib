@@ -14,34 +14,19 @@
     ]
 ).
 
+:- use_module(library(dcg/basics)).
+
 %! tokens(Tokens:list)
-% Match a list of all tokens including whitespace.
+% Match a list of all tokens excluding whitespace.
 tokens([Token|Tokens]) -->
     token(Token),
-    {writeln(Token)},
     tokens(Tokens).
 tokens(Tokens) -->
-    [Space],
-    {char_type(Space, space)},
+    blank,
+    blanks,
     tokens(Tokens).
 tokens([]) -->
      [].
-
-%! block_chars(Chars:codes)
-% Match a list of character codes up to a the end of a multi-line comment.
-block_chars([Char|Chars]) -->
-    [Char],
-    {\+ char_code('*', Char)},
-    block_chars(Chars).
-block_chars([Char1,Char2|Chars]), [Char2] -->
-    [Char1],
-    {char_code('*', Char1)},
-    [Char2],
-    {\+ char_code('/', Char2)},
-    block_chars(Chars).
-block_chars([]) -->
-    `*`,
-    `/`.
 
 %! chars(Chars:codes, Type:atom|compound)
 % Match a list of character codes.
@@ -51,22 +36,13 @@ chars([Char|Chars], Type) -->
 chars([], _) -->
     [].
 
-%! line_chars(Chars:codes)
-% Match a list of character codes up to a new line.
-line_chars([Char|Chars]) -->
-	[Char],
-    {\+ char_type(Char, end_of_line)},
-	line_chars(Chars).
-line_chars([]) -->
-    [].
-
 %! base_digit(Digit:code, Base:int)
 % Match an digit character code in a base from 2 to 10.
 base_digit(Digit, Base) -->
     [Digit],
     {
         char_type(Digit, digit(Weight)),
-        Weight < Base 
+        Weight < Base
     }.
 
 %! base_digits(Digits:codes)
@@ -100,7 +76,6 @@ quoted_chars(Quote, [Char|Chars]) -->
     [Char],
     {char_code('\\', Char)},
     base_digits(Digits, 8),
-    {writeln(Digits)},
     quoted_chars(Quote, Rest),
     {append(Digits, Rest, Chars)}.
 quoted_chars(Quote, [Char1, Char2, Char3, Char4, Char5, Char6|Chars]) -->
@@ -143,37 +118,38 @@ quoted_chars(Quote, []) -->
 
 %! token(Token:compound)
 % Match a single token.
-token(line_comment(Comment)) -->
+token(comment(line, Comment)) -->
     `%`,
-	line_chars(Chars),
-	`\n`,
+	string_without(`\n`, Chars),
     !,
     {atom_chars(Comment, Chars)}.
-token(block_comment(Comment)) -->
+token(comment(block, Comment)) -->
     `/`,
     `*`,
-	block_chars(Chars),
+	string(Chars),
+    `*`,
+    `/`,
     !,
     {atom_chars(Comment, Chars)}.
-token(back_quoted(String)) -->
+token(quoted(back, String)) -->
     [Char],
     {char_code('`', Char)},
 	quoted_chars('`', Chars),
     !,
     {atom_chars(String, Chars)}.
-token(double_quoted(String)) -->
+token(quoted(double, String)) -->
     [Char],
     {char_code('"', Char)},
 	quoted_chars('"', Chars),
     !,
     {atom_chars(String, Chars)}.
-token(single_quoted(String)) -->
+token(quoted(single, String)) -->
     [Char],
     {char_code('\'', Char)},
 	quoted_chars('\'', Chars),
     !,
     {atom_chars(String, Chars)}.
-token(binary_value(Binary)) -->
+token(value(binary, Binary)) -->
     `0b`,
     base_digits(Chars, 2),
     !,
@@ -181,7 +157,7 @@ token(binary_value(Binary)) -->
         append(`0b`, Chars, BinaryChars),
         atom_chars(Binary, BinaryChars)
     }.
-token(octal_value(Octal)) -->
+token(value(octal, Octal)) -->
     `0o`,
     base_digits(Chars, 8),
     !,
@@ -189,7 +165,7 @@ token(octal_value(Octal)) -->
         append(`0o`, Chars, OctalChars),
         atom_chars(Octal, OctalChars)
     }.
-token(hex_value(Hex)) -->
+token(value(hex, Hex)) -->
     `0x`,
     hex_chars(Chars),
     !,
@@ -197,20 +173,20 @@ token(hex_value(Hex)) -->
         append(`0x`, Chars, HexChars),
         atom_chars(Hex, HexChars)
     }.
-token(float_value(PosFloat)) -->
+token(value(float, PosFloat)) -->
     float_digits(Digits),
     {atom_chars(PosFloat, Digits)}.
-token(float_value(NegFloat)) -->
+token(value(float, NegFloat)) -->
     `-`,
     float_digits(Digits),
     {
         char_code('-', Sign),
         atom_chars(NegFloat, [Sign|Digits])
     }.
-token(int_value(PosInt)) -->
+token(value(int, PosInt)) -->
     base_digits(Digits, 10),
     {atom_chars(PosInt, Digits)}.
-token(int_value(NegInt)) -->
+token(value(int, NegInt)) -->
     `-`,
     base_digits(Digits, 10),
     {

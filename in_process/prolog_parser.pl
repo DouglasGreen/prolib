@@ -31,9 +31,9 @@ parse_section(clauses([Clause|Clauses])) -->
     parse_clauses(Clauses).
 
 parse_comment(comment(line(Line))) -->
-    [line_comment(Line)].
+    [comment(line, Line)].
 parse_comment(comment(block(Block))) -->
-    [block_comment(Block)].
+    [comment(block, Block)].
 
 parse_clauses([Clause|Clauses]) -->
     parse_clause(Clause),
@@ -59,8 +59,8 @@ parse_head(head(Head)) :-
 
 parse_atom(atom(lower(Atom))) -->
     [lower(Atom)].
-parse_atom(atom(single_quoted(Atom))) -->
-    [single_quoted(Atom)].
+parse_atom(atom(quoted(single, Atom))) -->
+    [quoted(single, Atom)].
 
 /*
 clause(clause(Head, Block)) -->
@@ -88,17 +88,17 @@ termlist([paren, Term|Terms]) -->
     [mark('(')],
     term(Term),
     terms(Terms),
-    [mark(')')]. 
+    [mark(')')].
 termlist([bracket, Term|Terms]) -->
     [mark('[')],
     term(Term),
     terms(Terms),
-    [mark(']')]. 
+    [mark(']')].
 termlist([brace, Term|Terms]) -->
     [mark('{')],
     term(Term),
     terms(Terms),
-    [mark('}')]. 
+    [mark('}')].
 
 terms([Term|Terms]) -->
     [mark(',')],
