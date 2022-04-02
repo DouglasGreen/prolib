@@ -9,7 +9,7 @@
     ]
 ).
 :- use_module(prolog_lexer).
-:- use_module(prolog_oplist).
+:- use_module(prolog_operators).
 
 % todo: Check if predicates are already defined by the language
 
