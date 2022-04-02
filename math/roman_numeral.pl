@@ -21,23 +21,6 @@ convert(Arabic, Roman) :-
     atom(Roman),
     to_arabic(Roman, Arabic).
 
-%! roman_chars(+Chars:chars, -Arabic:int) is det
-% Convert a list of Roman characters to an Arabic number.
-roman_chars([Char1, Char2|Chars], Arabic) :-
-    roman_value(Char1, Arabic1),
-    roman_value(Char2, Arabic2),
-    Arabic1 < Arabic2,
-    roman_chars(Chars, Arabic3),
-    Arabic is Arabic2 - Arabic1 + Arabic3,
-    !.
-roman_chars([Char|Chars], Arabic) :-
-    roman_value(Char, Arabic1),
-    roman_chars(Chars, Arabic2),
-    Arabic is Arabic1 + Arabic2.
-roman_chars([Char], Arabic) :-
-    roman_value(Char, Arabic).
-roman_chars([], 0).
-
 %! to_arabic(+Roman:atom, -Arabic:int) is det
 % Convert a Roman numeral to an Arabic number.
 to_arabic(Roman, Arabic) :-
@@ -57,6 +40,23 @@ to_roman(Arabic, Roman) :-
     OtherArabic is Arabic - MaxArabic,
     to_roman(OtherArabic, OtherRoman),
     atom_concat(MaxRoman, OtherRoman, Roman).
+
+%! roman_chars(+Chars:chars, -Arabic:int) is det
+% Convert a list of Roman characters to an Arabic number.
+roman_chars([Char1, Char2|Chars], Arabic) :-
+    roman_value(Char1, Arabic1),
+    roman_value(Char2, Arabic2),
+    Arabic1 < Arabic2,
+    roman_chars(Chars, Arabic3),
+    Arabic is Arabic2 - Arabic1 + Arabic3,
+    !.
+roman_chars([Char|Chars], Arabic) :-
+    roman_value(Char, Arabic1),
+    roman_chars(Chars, Arabic2),
+    Arabic is Arabic1 + Arabic2.
+roman_chars([Char], Arabic) :-
+    roman_value(Char, Arabic).
+roman_chars([], 0).
 
 %! roman_value(?Roman:atom, ?Arabic:int) is nondet
 % Look up the value of a Roman number.
